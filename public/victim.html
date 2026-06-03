@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PulsePoint+ — Victim Device Simulator</title>
+  
+  <!-- Google Fonts (Outfit & Inter) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="page-victim">
+
+  <!-- Nav Header -->
+  <nav class="subpage-nav">
+    <a href="/" class="btn-back-hub"><i class="fa-solid fa-house"></i> Back to Hub</a>
+    <h2>PulsePoint+ Victim Simulator</h2>
+  </nav>
+
+  <!-- Centered Workspace for Phone -->
+  <div class="victim-workspace">
+    
+    <!-- Phone Bezel Container -->
+    <div class="phone-bezel">
+      <div class="phone-screen" id="phone-screen-container">
+        
+        <!-- Screen Header / Status Bar -->
+        <div class="phone-status-bar">
+          <span class="phone-time">14:20</span>
+          <div class="phone-icons">
+            <i class="fa-solid fa-wifi"></i>
+            <i class="fa-solid fa-signal"></i>
+            <i class="fa-solid fa-battery-three-quarters"></i>
+          </div>
+        </div>
+        
+        <!-- PHONE SCREEN: 1. Setup / Home View -->
+        <div class="screen-view active" id="screen-setup">
+          <div class="phone-app-header">
+            <h3>PulsePoint+</h3>
+            <p>User Emergency Profile</p>
+          </div>
+          
+          <form id="setup-form" class="phone-form" onsubmit="event.preventDefault(); saveProfile();">
+            <div class="form-group">
+              <label for="user-name">Full Name</label>
+              <div class="input-wrapper">
+                <i class="fa-regular fa-user"></i>
+                <input type="text" id="user-name" value="Alex Mercer" required>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="user-phone">Phone Number</label>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-phone"></i>
+                <input type="tel" id="user-phone" value="+1 (555) 389-1029" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="emergency-contact">ICE Contact (SMS recipient)</label>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-heart"></i>
+                <input type="text" id="emergency-contact" value="Sarah Mercer (Wife) - +1 (555) 723-9081" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="voice-language">Voice Guidance Language</label>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-language"></i>
+                <select id="voice-language">
+                  <option value="en-US">English</option>
+                  <option value="es-ES">Español (Spanish)</option>
+                  <option value="hi-IN">हिन्दी (Hindi)</option>
+                  <option value="fr-FR">Français (French)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group row-inline">
+              <label for="sound-enabled" class="checkbox-label">
+                <input type="checkbox" id="sound-enabled" checked>
+                <span>Enable Audio Speech Guidance</span>
+              </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">
+              Save & Initialize Device
+            </button>
+          </form>
+        </div>
+        
+        <!-- PHONE SCREEN: 2. Active Home / SOS Button View -->
+        <div class="screen-view" id="screen-home">
+          <div class="phone-app-header-home">
+            <span class="user-greeting">Hello, <strong id="display-user-name">Alex</strong></span>
+            <span class="gps-indicator"><i class="fa-solid fa-location-dot"></i> GPS Active</span>
+          </div>
+
+          <div class="sos-trigger-container">
+            <p class="sos-instruction">Tap in emergency or hold to test</p>
+            
+            <button class="sos-btn" id="sos-trigger-btn">
+              <span class="sos-ripple"></span>
+              <span class="sos-ripple delay-1"></span>
+              <span class="sos-text">SOS</span>
+            </button>
+            
+            <p class="sos-sub-instruction">Alerts volunteers, ambulance & family</p>
+          </div>
+
+          <!-- Sensor Simulators for Testing -->
+          <div class="sensor-sim-panel">
+            <h4><i class="fa-solid fa-gauge-high"></i> Sensor Simulators (Auto-Detect)</h4>
+            <p class="sensor-desc">Simulate physical device triggers below:</p>
+            <div class="sensor-buttons">
+              <button class="btn btn-sensor" id="sim-fall-btn">
+                <i class="fa-solid fa-person-falling"></i>
+                <span>Simulate Fall</span>
+              </button>
+              <button class="btn btn-sensor" id="sim-crash-btn">
+                <i class="fa-solid fa-car-burst"></i>
+                <span>Simulate Car Crash</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PHONE SCREEN: 3. Countdown Overlay -->
+        <div class="screen-view" id="screen-countdown">
+          <div class="countdown-card">
+            <div class="warning-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <h3>Fall/Impact Detected!</h3>
+            <p>Are you okay? Automatically sending SOS alert in:</p>
+            
+            <div class="countdown-timer" id="countdown-number">5</div>
+            
+            <p class="countdown-warning-note">Your live location will be shared immediately.</p>
+            
+            <button class="btn btn-cancel" id="cancel-countdown-btn">
+              I'm OK - Cancel Alert
+            </button>
+          </div>
+        </div>
+
+        <!-- PHONE SCREEN: 4. Active SOS / Tracking View -->
+        <div class="screen-view" id="screen-active-sos">
+          <div class="active-sos-status">
+            <div class="beacon-pulse"></div>
+            <h3 id="victim-status-text">SOS Alert Sent</h3>
+            <p id="victim-status-subtext">Waiting for dispatch...</p>
+          </div>
+
+          <div class="tracking-details">
+            <div class="track-row">
+              <span class="track-label">My Coordinates</span>
+              <span class="track-value font-mono" id="my-coords">40.7128, -74.0060</span>
+            </div>
+            <div class="track-row">
+              <span class="track-label">Trigger Event</span>
+              <span class="track-value badge-small" id="victim-trigger-type">MANUAL</span>
+            </div>
+            <div class="track-row">
+              <span class="track-label">Voice Guidance</span>
+              <span class="track-value font-italic" id="voice-guidance-indicator">Running (EN)...</span>
+            </div>
+          </div>
+
+          <!-- First Aid Smart Carousel (Visual/Text) -->
+          <div class="first-aid-helper">
+            <div class="helper-header">
+              <i class="fa-solid fa-kit-medical text-red"></i>
+              <span>Smart First Aid Guide</span>
+            </div>
+            <div class="helper-content" id="first-aid-tip-box">
+              Keep calm. Sit or lie down in a safe space. Do not attempt to walk if you feel dizzy or hurt. Rescue services have been notified of your location.
+            </div>
+          </div>
+
+          <button class="btn btn-block btn-outline-white" id="cancel-sos-btn">
+            Cancel Emergency (Mark OK)
+          </button>
+        </div>
+
+      </div>
+      <div class="phone-home-indicator"></div>
+    </div>
+    
+    <!-- GPS Simulator controls under phone -->
+    <div class="gps-simulator-bar">
+      <h4><i class="fa-solid fa-compass"></i> Live GPS Simulator Control</h4>
+      <p>Drag the slider to simulate victim walking / GPS drift:</p>
+      <div class="slider-container">
+        <label for="gps-drift-slider">Position Offset</label>
+        <input type="range" id="gps-drift-slider" min="-50" max="50" value="0" step="1">
+        <span class="slider-display" id="gps-drift-val">0m</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Socket.io -->
+  <script src="/socket.io/socket.io.js"></script>
+  <!-- Custom JS Modules -->
+  <script src="js/victim.js"></script>
+</body>
+</html>

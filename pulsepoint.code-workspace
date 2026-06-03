@@ -1,0 +1,11 @@
+{
+  "folders": [
+    {
+      "name": "projects/pulsepoint",
+      "path": "projects/pulsepoint"
+    }
+  ],
+  "settings": {
+    "explorer.compactFolders": false
+  }
+}

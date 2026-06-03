@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PulsePoint+ — Emergency Response Hub</title>
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="PulsePoint+ is a smart emergency response app designed to save lives during accidents by auto-detecting falls, alerting responders, and showing real-time location tracking.">
+  
+  <!-- Google Fonts (Outfit & Inter) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="hub-body">
+
+  <div class="hub-container">
+    
+    <!-- Header Area -->
+    <header class="hub-header">
+      <div class="logo-icon"><i class="fa-solid fa-truck-medical"></i></div>
+      <h1>PulsePoint<span>+</span></h1>
+      <p class="subtitle">Smart Emergency Response Hub</p>
+      
+      <div class="hub-stats">
+        <div class="hub-stat-item">
+          <span class="stat-num" id="active-emergencies-count">0</span>
+          <span class="stat-lbl">Active Incidents</span>
+        </div>
+        <div class="hub-stat-item">
+          <span class="stat-num" id="dispatched-count">0</span>
+          <span class="stat-lbl">EMTs Dispatched</span>
+        </div>
+        <div class="hub-stat-item">
+          <span class="stat-num text-green"><span class="pulse-dot"></span></span>
+          <span class="stat-lbl">System Online</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Portals Grid -->
+    <main class="hub-grid">
+      
+      <!-- Victim Simulator Portal Card -->
+      <a href="/victim" class="hub-card victim-card">
+        <div class="card-glow"></div>
+        <div class="card-icon"><i class="fa-solid fa-mobile-screen"></i></div>
+        <h2>Victim Portal</h2>
+        <p>Simulate the patient's mobile app. Features manual SOS trigger, text-to-speech guidance, live GPS drift, and fall/crash sensor auto-detection alerts.</p>
+        <span class="card-action">Launch Simulator <i class="fa-solid fa-arrow-right"></i></span>
+      </a>
+
+      <!-- Dispatcher Dashboard Portal Card -->
+      <a href="/dispatcher" class="hub-card dispatcher-card">
+        <div class="card-glow"></div>
+        <div class="card-icon"><i class="fa-solid fa-earth-americas"></i></div>
+        <h2>Command Center</h2>
+        <p>Full-screen dashboard for emergency services. Plot active incidents on Leaflet maps, dispatch closest ambulances or volunteers, and track real-time ETAs.</p>
+        <span class="card-action">Launch Command Center <i class="fa-solid fa-arrow-right"></i></span>
+      </a>
+
+    </main>
+
+    <!-- Ticker Logs Console -->
+    <footer class="hub-footer">
+      <h3><i class="fa-solid fa-terminal text-green"></i> Live Stack Feed</h3>
+      <div class="console-box mini-console" id="console-logs">
+        <!-- Filled dynamically by server websocket logs -->
+        <div class="log-row log-system">
+          <span class="log-time">00:00:00</span>
+          <span class="log-tag">SYSTEM</span>
+          <span class="log-message">Ready to receive Socket.io connections...</span>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Socket.io -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    
+    socket.on('initial-state', (data) => {
+      document.getElementById('active-emergencies-count').innerText = data.emergencies.length;
+      let dispatched = data.emergencies.filter(e => e.status === 'DISPATCHED' || e.status === 'ARRIVED').length;
+      document.getElementById('dispatched-count').innerText = dispatched;
+    });
+
+    socket.on('new-emergency', () => {
+      incrementCount('active-emergencies-count');
+    });
+
+    socket.on('responder-dispatched', () => {
+      incrementCount('dispatched-count');
+    });
+
+    socket.on('emergency-resolved', (data) => {
+      decrementCount('active-emergencies-count');
+      // If it was dispatched, decrement dispatched count
+      // We can just reload state or handle inline. Let's reload count roughly or refresh
+      socket.emit('request-state-update'); // requests update or we just reload stats
+    });
+
+    // Custom request update listener to keep stats sync
+    socket.on('initial-state', (data) => {
+      document.getElementById('active-emergencies-count').innerText = data.emergencies.length;
+      let dispatched = data.emergencies.filter(e => e.status === 'DISPATCHED' || e.status === 'ARRIVED').length;
+      document.getElementById('dispatched-count').innerText = dispatched;
+    });
+
+    socket.on('api-log', (log) => {
+      appendConsoleLog(log);
+    });
+
+    function incrementCount(id) {
+      const el = document.getElementById(id);
+      if (el) el.innerText = parseInt(el.innerText) + 1;
+    }
+
+    function decrementCount(id) {
+      const el = document.getElementById(id);
+      if (el && parseInt(el.innerText) > 0) el.innerText = parseInt(el.innerText) - 1;
+    }
+
+    function appendConsoleLog(log) {
+      const consoleBox = document.getElementById('console-logs');
+      if (!consoleBox) return;
+
+      const logDiv = document.createElement('div');
+      let typeClass = 'log-system';
+      if (log.type === 'TWILIO') typeClass = 'log-twilio';
+      if (log.type === 'GOOGLE_MAPS') typeClass = 'log-maps';
+      if (log.type === 'DATABASE') typeClass = 'log-db';
+
+      logDiv.className = `log-row ${typeClass}`;
+      logDiv.innerHTML = `
+        <span class="log-time">${log.timestamp}</span>
+        <span class="log-tag">${log.type}</span>
+        <span class="log-message"><strong>${log.action}:</strong> ${log.details}</span>
+      `;
+
+      // Insert at the top of the ticker
+      consoleBox.insertBefore(logDiv, consoleBox.firstChild);
+      
+      // Limit to 5 logs in mini ticker
+      while (consoleBox.children.length > 5) {
+        consoleBox.removeChild(consoleBox.lastChild);
+      }
+    }
+  </script>
+</body>
+</html>

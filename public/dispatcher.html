@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PulsePoint+ — Emergency Command Center</title>
+  
+  <!-- Google Fonts (Outfit & Inter) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="page-dispatcher">
+
+  <!-- Top Navigation / Status Header -->
+  <header class="app-header">
+    <div class="header-logo">
+      <a href="/" class="btn-back-hub-icon"><i class="fa-solid fa-house"></i></a>
+      <div class="logo-icon"><i class="fa-solid fa-truck-medical"></i></div>
+      <div class="logo-text">
+        <h1>PulsePoint<span>+</span></h1>
+        <p>Smart Emergency Response Center</p>
+      </div>
+    </div>
+    <div class="header-stats">
+      <div class="stat-card">
+        <span class="stat-label">Active Emergencies</span>
+        <span class="stat-value text-red" id="active-emergencies-count">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Responders Dispatched</span>
+        <span class="stat-value text-amber" id="dispatched-count">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">System Status</span>
+        <span class="stat-value text-green"><span class="pulse-dot"></span> Online</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Fullscreen Dispatcher Workspace -->
+  <main class="dispatcher-workspace">
+    
+    <!-- LEFT PANEL: Leaflet Map -->
+    <section class="dispatcher-map-panel">
+      <div class="map-wrapper fullscreen-map-wrapper">
+        <div id="leaflet-map"></div>
+        <div class="map-legend">
+          <div class="legend-item"><span class="legend-dot dot-victim"></span> Victim</div>
+          <div class="legend-item"><span class="legend-dot dot-ambulance"></span> Ambulance</div>
+          <div class="legend-item"><span class="legend-dot dot-volunteer"></span> Volunteer</div>
+          <div class="legend-item"><span class="legend-dot dot-hospital"></span> Hospital</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT PANEL: Incidents, Responders, and Console Logs -->
+    <section class="dispatcher-info-panel">
+      
+      <!-- Incidents Feed -->
+      <div class="sub-panel incidents-panel">
+        <div class="sub-panel-header">
+          <h3><i class="fa-solid fa-bell text-red"></i> Active Incidents</h3>
+        </div>
+        <div class="incident-list-container">
+          <table class="incident-table">
+            <thead>
+              <tr>
+                <th>Victim</th>
+                <th>Trigger</th>
+                <th>Status</th>
+                <th>Location</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="incidents-table-body">
+              <tr class="empty-row">
+                <td colspan="5">No active emergencies. Waiting for SOS...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Standby Responder Network -->
+      <div class="sub-panel responders-panel">
+        <div class="sub-panel-header">
+          <h3><i class="fa-solid fa-users text-blue"></i> Standby Responders</h3>
+        </div>
+        <div class="responder-list" id="responder-standby-list">
+          <div class="responder-card">
+            <div class="resp-avatar text-amber"><i class="fa-solid fa-motorcycle"></i></div>
+            <div class="resp-info">
+              <strong>Volunteer Sarah Kent</strong>
+              <span>Certified EMT • 0.8 km away</span>
+            </div>
+            <span class="status-badge badge-standby">STANDBY</span>
+          </div>
+          <div class="responder-card">
+            <div class="resp-avatar text-red"><i class="fa-solid fa-truck-medical"></i></div>
+            <div class="resp-info">
+              <strong>Ambulance Unit 104</strong>
+              <span>New York General • 1.4 km away</span>
+            </div>
+            <span class="status-badge badge-standby">STANDBY</span>
+          </div>
+          <div class="responder-card">
+            <div class="resp-avatar text-green"><i class="fa-solid fa-house-medical"></i></div>
+            <div class="resp-info">
+              <strong>Volunteer David Miller</strong>
+              <span>First Aid Trained • 0.3 km away</span>
+            </div>
+            <span class="status-badge badge-standby">STANDBY</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Real-Time Log Viewer Console -->
+      <div class="sub-panel console-panel">
+        <div class="sub-panel-header">
+          <h3><i class="fa-solid fa-terminal text-green"></i> Live API & Stack Logs</h3>
+          <button class="btn-clear-logs" onclick="clearConsole()"><i class="fa-solid fa-trash-can"></i> Clear</button>
+        </div>
+        <div class="console-box" id="console-logs">
+          <!-- Filled dynamically by database server -->
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Socket.io -->
+  <script src="/socket.io/socket.io.js"></script>
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  
+  <!-- Custom JS Modules -->
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

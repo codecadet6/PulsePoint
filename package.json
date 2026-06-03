@@ -1,0 +1,26 @@
+{
+  "name": "pulsepoint-plus",
+  "version": "1.0.0",
+  "description": "PulsePoint+ - Smart Emergency Response App Dashboard Simulator",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5",
+    "sqlite3": "^6.0.1",
+    "twilio": "^6.0.2"
+  },
+  "keywords": [
+    "emergency",
+    "safety",
+    "first-aid",
+    "real-time",
+    "tracking"
+  ],
+  "author": "Antigravity",
+  "license": "ISC"
+}
